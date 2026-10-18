@@ -5,6 +5,8 @@ test('Turso yo‘q Vercel muhiti: loginsiz AI chat, yuborish va tozalash',async(
  let received;
  await page.route('**/api/ai',async r=>{if(r.request().method()==='GET')return r.fulfill({json:{messages:[],configured:true,model:'test-model'}});received=r.request().postDataJSON();return r.fulfill({json:{answer:'2 + 2 = 4.'}});});
  await page.goto('/');
+ await expect(page.getByRole('heading',{name:'Yana ko‘rishganimizdan xursandmiz'})).toBeVisible();
+ await page.getByRole('link',{name:'AI chatni sinab ko‘rish'}).click();
  await expect(page.getByRole('heading',{name:'Har bir savol — yangi imkoniyat'})).toBeVisible();
  await page.getByLabel('AI uchun savol').fill('2 + 2 nechaga teng?');
  await page.getByLabel('Savolni yuborish').click();

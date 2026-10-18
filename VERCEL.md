@@ -6,9 +6,7 @@ Vercel → loyihangiz → **Settings → Environment Variables** ichiga kiriting
 
 | Nomi | Qiymati |
 | --- | --- |
-| `AI_BASE_URL` | `https://api.groq.com/openai/v1` |
-| `AI_MODEL` | `openai/gpt-oss-20b` |
-| `AI_API_KEY` | Yangi Groq API kalitingiz |
+| `GROQ_API_KEY` | Yangi Groq API kalitingiz |
 
 Production va kerak bo‘lsa Preview muhitini tanlang. `VITE_GROQ_API_KEY` ishlatmang. `.env` fayli hostingga yuklanmaydi — Vercel o‘zgaruvchilarini alohida kiritish zarur.
 
@@ -39,9 +37,7 @@ npm test
 npm run build
 npx vercel login
 npx vercel link
-npx vercel env add AI_BASE_URL production
-npx vercel env add AI_MODEL production
-npx vercel env add AI_API_KEY production
+npx vercel env add GROQ_API_KEY production
 npx vercel --prod
 ```
 

@@ -9,7 +9,9 @@ export default async function handler(req,res){
  const json=(status,data)=>{res.statusCode=status;res.setHeader('Content-Type','application/json; charset=utf-8');res.end(JSON.stringify(data));};
  try{
   if(url.pathname==='/api/ai')return json(200,await publicAI(req));
-  if(!process.env.TURSO_DATABASE_URL){const ai=readAIConfig();if(url.pathname==='/api/health')return json(200,{ok:true,service,databaseConfigured:false,database:null,aiConfigured:Boolean(ai.key&&ai.model),model:ai.model||null,demo:false});if(url.pathname==='/api/me')return json(200,{user:null,demo:false});return json(503,{error:'Kabinetlar uchun TURSO_DATABASE_URL va TURSO_AUTH_TOKEN kerak. AI chatdan bazasiz ham foydalanishingiz mumkin.'});}
+  const databaseConfigured=Boolean(process.env.TURSO_DATABASE_URL&&process.env.TURSO_AUTH_TOKEN);
+  if(url.pathname==='/api/health'){const ai=readAIConfig();return json(200,{ok:true,service,databaseConfigured,database:databaseConfigured?'turso':null,aiConfigured:Boolean(ai.key&&ai.model),model:ai.model||null,demo:databaseConfigured&&process.env.DEMO_MODE!=='false'});}
+  if(!databaseConfigured){if(url.pathname==='/api/me')return json(200,{user:null,demo:false});return json(503,{error:'Kabinetlar uchun TURSO_DATABASE_URL va TURSO_AUTH_TOKEN kerak. AI chatdan bazasiz ham foydalanishingiz mumkin.'});}
   app??=createApp({reloadAIConfig:true});return await app.handler(req,res);
  }catch(error){if(!res.headersSent)json(error.status||503,{error:error.status?error.message:'Server sozlamalarini tekshiring. Turso bazasi uchun npm run db:setup bajarilishi kerak.'});else res.end();}
 }
