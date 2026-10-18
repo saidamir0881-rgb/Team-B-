@@ -1,0 +1,39 @@
+import { DatabaseSync } from 'node:sqlite';
+import { randomBytes, scryptSync } from 'node:crypto';
+import { mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
+export function passwordHash(password,salt=randomBytes(16).toString('hex')) {return `${salt}:${scryptSync(password,salt,64).toString('hex')}`;}
+export const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tashkent',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+export function openDatabase(path){if(path!==':memory:')mkdirSync(dirname(path),{recursive:true});const db=new DatabaseSync(path);db.exec(`PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL;
+CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY,name TEXT NOT NULL,email TEXT UNIQUE NOT NULL,password TEXT NOT NULL,role TEXT NOT NULL,class_name TEXT NOT NULL DEFAULT '8-A',link_code TEXT UNIQUE,tokens INTEGER NOT NULL DEFAULT 0 CHECK(tokens>=0));
+CREATE TABLE IF NOT EXISTS sessions(id TEXT PRIMARY KEY,user_id INTEGER REFERENCES users(id),expires INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS parent_links(parent_id INTEGER REFERENCES users(id),student_id INTEGER REFERENCES users(id),PRIMARY KEY(parent_id,student_id));
+CREATE TABLE IF NOT EXISTS assignments(id INTEGER PRIMARY KEY,teacher_id INTEGER REFERENCES users(id),title TEXT NOT NULL,subject TEXT NOT NULL,kind TEXT NOT NULL,body TEXT NOT NULL,due TEXT NOT NULL,reward INTEGER NOT NULL,class_name TEXT NOT NULL,created TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS submissions(id INTEGER PRIMARY KEY,assignment_id INTEGER REFERENCES assignments(id),student_id INTEGER REFERENCES users(id),answer TEXT NOT NULL,grade INTEGER,feedback TEXT DEFAULT '',created TEXT NOT NULL,UNIQUE(assignment_id,student_id));
+CREATE TABLE IF NOT EXISTS attendance(id INTEGER PRIMARY KEY,student_id INTEGER REFERENCES users(id),day TEXT NOT NULL,subject TEXT NOT NULL,status TEXT NOT NULL,note TEXT NOT NULL DEFAULT '',UNIQUE(student_id,day,subject));
+CREATE TABLE IF NOT EXISTS rewards(id INTEGER PRIMARY KEY,name TEXT NOT NULL,category TEXT NOT NULL,cost INTEGER NOT NULL,stock INTEGER NOT NULL,icon TEXT NOT NULL,description TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS orders(id INTEGER PRIMARY KEY,student_id INTEGER REFERENCES users(id),reward_id INTEGER REFERENCES rewards(id),cost INTEGER NOT NULL,status TEXT NOT NULL DEFAULT 'pending',created TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS ledger(id INTEGER PRIMARY KEY,user_id INTEGER REFERENCES users(id),amount INTEGER NOT NULL,reason TEXT NOT NULL,created TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS chat(id INTEGER PRIMARY KEY,user_id INTEGER REFERENCES users(id),role TEXT NOT NULL,content TEXT NOT NULL,created TEXT NOT NULL);
+`);
+if(!db.prepare('SELECT id FROM users LIMIT 1').get()){
+const insert=db.prepare('INSERT INTO users(name,email,password,role,link_code,tokens) VALUES(?,?,?,?,?,?)');
+insert.run('Azizbek Karimov','student@demo.local',passwordHash('Demo2026!'),'student','AZIZ-2026',1250);
+insert.run('Madina Karimova','parent@demo.local',passwordHash('Demo2026!'),'parent',null,0);
+insert.run('Dilnoza Rahimova','teacher@demo.local',passwordHash('Demo2026!'),'teacher',null,0);
+insert.run('Malika Sobirova','malika@demo.local',passwordHash('Demo2026!'),'student','MALI-2026',350);
+db.prepare('INSERT INTO parent_links VALUES(2,1)').run();
+const now=new Date().toISOString();
+db.prepare('INSERT INTO ledger(user_id,amount,reason,created) VALUES(?,?,?,?)').run(1,1250,'Namuna hisobiga boshlang‘ich tokenlar',now);
+db.prepare('INSERT INTO ledger(user_id,amount,reason,created) VALUES(?,?,?,?)').run(4,350,'Namuna hisobiga boshlang‘ich tokenlar',now);
+const task=db.prepare('INSERT INTO assignments(teacher_id,title,subject,kind,body,due,reward,class_name,created) VALUES(3,?,?,?,?,?,?,?,?)');
+task.run('Kasrlar bilan amallar','Matematika','homework','½ + ¼ va ¾ − ⅓ ni hisoblang. Har bir qadamni tushuntirib yozing.','2026-10-25',100,'8-A',now);
+task.run('Nyuton qonunlarini tushuntiring','Fizika','classwork','Koptok devorga urilganda qaysi jismlar o‘zaro ta’sirlashadi? Kuch yo‘nalishlarini tushuntiring.','2026-10-26',150,'8-A',now);
+task.run('Sinfdagi kichik tajriba','Fizika','activity','Ikki o‘quvchi arqonni ikki tomondan tortish tajribasini muhokama qiladi. Kuzatuvingizni va xulosangizni yozing.','2026-10-27',120,'8-A',now);
+task.run('Algoritmni so‘z bilan ifodalang','Dasturlash','homework','1 dan 10 gacha sonlar yig‘indisini topadigan algoritm tuzing. Sikl nima uchun kerakligini ayting.','2026-10-28',80,'8-A',now);
+const att=db.prepare('INSERT INTO attendance(student_id,day,subject,status,note) VALUES(?,?,?,?,?)');
+for(let i=11;i>=0;i--){const day=new Date(`${today()}T12:00:00+05:00`);day.setUTCDate(day.getUTCDate()-i);const date=day.toISOString().slice(0,10);if(day.getUTCDay()===0)continue;for(const id of [1,4])for(const subject of ['Matematika','Fizika'])att.run(id,date,subject,i===4&&id===1?'absent':i===2&&subject==='Fizika'?'late':'present',i===4&&id===1?'Namuna: oilaviy sabab':'');}
+const reward=db.prepare('INSERT INTO rewards(name,category,cost,stock,icon,description) VALUES(?,?,?,?,?,?)');
+for(const r of [['Smartfon','Texnika',15000,3,'phone','O‘qish va ijod uchun zamonaviy smartfon.'],['Noutbuk','Texnika',45000,2,'laptop','Dasturlash va loyihalar uchun noutbuk.'],['Simsiz sichqoncha','Texnika',1800,12,'mouse','Qulay va ixcham simsiz sichqoncha.'],['Kitoblar to‘plami','Kitoblar',500,25,'books','Yosh kitobxonlar uchun uchta kitob.'],['Futbol to‘pi','Sport',1200,10,'ball','Do‘stlar bilan faol vaqt o‘tkazish uchun.'],['Futbol formasi','Sport',2500,8,'shirt','Sevimli jamoangiz uslubidagi forma.'],['Pul mukofoti','Mukofot',10000,4,'cash','100 000 so‘mlik mukofot uchun so‘rov. Haqiqiy to‘lov ulanmagan.'],['Quloqchin','Texnika',3200,7,'headphones','Ovozli darslarni tinglash uchun.'],['Ijodiy daftar','Kitoblar',250,30,'notebook','G‘oyalar va yangi bilimlar uchun.'],['Mantiqiy kubik','O‘yinlar',750,15,'puzzle','Mantiqiy fikrlashni mashq qilish uchun.']])reward.run(...r);
+}
+return db;}

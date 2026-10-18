@@ -1,0 +1,9 @@
+import { useEffect, useState } from 'react';
+import { BookOpen, Menu, X, Moon, Sun, ArrowUpRight } from 'lucide-react';
+export default function Header() {
+  const [open, setOpen] = useState(false);
+  const [dark, setDark] = useState(() => { try { const saved = localStorage.getItem('bilim-theme'); return saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches; } catch { return false; } });
+  useEffect(() => { document.documentElement.classList.toggle('dark', dark); try { localStorage.setItem('bilim-theme', dark ? 'dark' : 'light'); } catch { /* Rejim saqlashsiz ham ishlaydi. */ } }, [dark]);
+  const links = [['#bosh-sahifa', 'Bosh sahifa'], ['#imkoniyatlar', 'Imkoniyatlar'], ['#jarayon', 'Qanday ishlaydi?'], ['#sinov', 'Sinov testi']];
+  return <header className="header"><div className="container header-inner"><a href="#bosh-sahifa" className="logo" aria-label="BILIM AI — bosh sahifa"><span className="logo-icon"><BookOpen size={23}/></span>BILIM <span className="purple">AI</span></a><nav aria-label="Asosiy menyu" className="desktop-nav">{links.map(([href, label]) => <a key={href} href={href}>{label}</a>)}</nav><div className="header-actions"><button className="icon-button" onClick={() => setDark(!dark)} aria-label={dark ? 'Och rejimni yoqish' : 'To‘q rejimni yoqish'}>{dark ? <Sun size={20}/> : <Moon size={20}/>}</button><a className="button small header-cta" href="#sinov">Boshlash <ArrowUpRight size={16}/></a><button className="icon-button mobile-toggle" onClick={() => setOpen(!open)} aria-label={open ? 'Menyuni yopish' : 'Menyuni ochish'} aria-expanded={open} aria-controls="mobil-menyu">{open ? <X/> : <Menu/>}</button></div></div>{open && <nav id="mobil-menyu" className="mobile-nav" aria-label="Mobil menyu">{links.map(([href, label]) => <a key={href} href={href} onClick={() => setOpen(false)}>{label}</a>)}</nav>}</header>;
+}

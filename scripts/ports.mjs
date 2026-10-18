@@ -1,0 +1,5 @@
+import net from 'node:net';
+export function validPort(value){const port=Number(value);if(!Number.isInteger(port)||port<1||port>65535)throw new Error('Port 1–65535 oralig‘idagi butun son bo‘lishi kerak.');return port;}
+export function portAvailable(port){return new Promise((resolve,reject)=>{const probe=net.createServer();probe.once('error',error=>{if(error.code==='EADDRINUSE'||error.code==='EACCES')resolve(false);else reject(error);});probe.listen(port,'127.0.0.1',()=>probe.close(()=>resolve(true)));});}
+export async function readIdentity(port,path){try{const response=await fetch(`http://127.0.0.1:${port}${path}`,{signal:AbortSignal.timeout(1000)});return response.ok?await response.json():null;}catch{return null;}}
+export async function selectPort(start,{identityPath,matches,exclude=[]}={}){start=validPort(start);for(let port=start;port<=Math.min(start+49,65535);port++){if(exclude.includes(port))continue;if(await portAvailable(port))return {port,reuse:false};if(identityPath&&matches){const identity=await readIdentity(port,identityPath);if(matches(identity))return {port,reuse:true};}}throw new Error(`${start} portidan boshlab bo‘sh port topilmadi.`);}
