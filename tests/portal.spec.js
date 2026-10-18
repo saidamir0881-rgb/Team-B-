@@ -1,4 +1,30 @@
 import { test, expect } from '@playwright/test';
+test('Qurilma hisoblari: ustoz vazifasi → o‘quvchi javobi → token va sovrin',async({page})=>{
+ await page.route('**/api/health',r=>r.fulfill({json:{ok:true,databaseConfigured:false,aiConfigured:false,demo:false}}));
+ await page.route('**/api/ai',r=>r.fulfill({json:{messages:[],configured:false,model:null}}));
+ async function register(name,email,role){await page.getByRole('button',{name:'Ro‘yxatdan o‘tish',exact:true}).click();await page.getByLabel('Ism va familiya').fill(name);await page.getByLabel('Email',{exact:true}).fill(email);await page.getByLabel('Parol',{exact:true}).fill('Testing123!');await page.getByLabel('Hisob turi').selectOption(role);await page.getByRole('button',{name:'Hisob yaratish',exact:true}).click();await expect(page.getByRole('heading',{name:/Xush kelibsiz/})).toBeVisible();}
+ async function login(email){await page.getByLabel('Email',{exact:true}).fill(email);await page.getByLabel('Parol',{exact:true}).fill('Testing123!');await page.getByRole('button',{name:'Kirish',exact:true}).click();await expect(page.getByRole('heading',{name:/Xush kelibsiz/})).toBeVisible();}
+ await page.goto('/');await register('Sinov Ustoz','ustoz@example.com','teacher');await page.getByRole('link',{name:'O‘qituvchi kabineti',exact:true}).click();await page.getByRole('button',{name:'Topshiriq yaratish',exact:true}).click();await page.getByLabel('Sarlavha').fill('Sinov kasrlar vazifasi');await page.getByLabel('Tushuntirish va shart').fill('Yarim va chorakni qo‘shib tushuntiring.');await page.getByLabel('Token (maksimum)').fill('1000');await page.getByRole('button',{name:'E’lon qilish',exact:true}).click();await expect(page.getByText('Yangi topshiriq o‘quvchilar uchun e’lon qilindi.',{exact:true})).toBeVisible();await page.getByRole('button',{name:'Hisobdan chiqish'}).click();
+ await register('Yangi O‘quvchi','yangi@example.com','student');await page.getByRole('link',{name:'O‘quvchi kabineti',exact:true}).click();await page.getByRole('button',{name:'Javob yozish',exact:true}).click();await page.getByLabel('Javobingiz',{exact:true}).fill('Yarim ikki chorakka teng. Unga bir chorak qo‘shilsa uch chorak bo‘ladi.');await page.getByRole('button',{name:'Javobni topshirish'}).click();await expect(page.getByText('Javobingiz saqlandi.',{exact:false})).toBeVisible();await page.getByRole('button',{name:'Hisobdan chiqish'}).click();
+ await login('ustoz@example.com');await page.getByRole('link',{name:'O‘qituvchi kabineti',exact:true}).click();await page.getByRole('button',{name:'Javoblarni tekshirish',exact:true}).click();await page.getByRole('button',{name:'Baholash',exact:true}).click();await expect(page.getByText('Baho va tokenlar saqlandi.',{exact:true})).toBeVisible();await page.getByRole('button',{name:'Hisobdan chiqish'}).click();
+ await login('yangi@example.com');await page.getByRole('link',{name:'Token Shop',exact:true}).click();await page.getByRole('button',{name:'Kitoblar to‘plami uchun so‘rov'}).click();await page.getByRole('button',{name:'So‘rovni tasdiqlash'}).click();await expect(page.getByText('Sovrin so‘rovi saqlandi',{exact:false})).toBeVisible();await page.getByRole('button',{name:/Mening so‘rovlarim/}).click();await page.getByRole('button',{name:'Bekor qilish',exact:true}).click();await expect(page.getByText('So‘rov bekor qilindi.',{exact:false})).toBeVisible();
+});
+test('Turso ulanmaganida oddiy hisob yaratish, sessiya, chiqish va qayta kirish',async({page})=>{
+ await page.route('**/api/health',r=>r.fulfill({json:{ok:true,databaseConfigured:false,aiConfigured:false,demo:false}}));
+ await page.route('**/api/ai',r=>r.fulfill({json:{messages:[],configured:false,model:null}}));
+ const requests=[];page.on('request',r=>{if(/\/api\/(login|register)$/.test(r.url()))requests.push(r.url());});
+ await page.goto('/');await expect(page.getByText('Shu brauzerdagi hisob',{exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Ro‘yxatdan o‘tish',exact:true}).click();
+ await page.getByLabel('Ism va familiya').fill('Sinov O‘quvchi');await page.getByLabel('Email',{exact:true}).fill('sinov@example.com');await page.getByLabel('Parol',{exact:true}).fill('Testing123!');
+ await page.getByRole('button',{name:'Hisob yaratish',exact:true}).click();await expect(page.getByRole('heading',{name:/Xush kelibsiz, Sinov/})).toBeVisible();
+ await page.getByRole('link',{name:'O‘quvchi kabineti',exact:true}).click();await expect(page.getByRole('heading',{name:'Sizning bilim sayohatingiz'})).toBeVisible();
+ await page.reload();await expect(page.getByRole('heading',{name:'Sizning bilim sayohatingiz'})).toBeVisible();
+ await page.getByRole('button',{name:'Hisobdan chiqish'}).click();
+ await page.getByLabel('Email',{exact:true}).fill('sinov@example.com');await page.getByLabel('Parol',{exact:true}).fill('Wrong123!');await page.getByRole('button',{name:'Kirish',exact:true}).click();await expect(page.getByRole('alert')).toHaveText('Email yoki parol noto‘g‘ri.');
+ await page.getByLabel('Parol',{exact:true}).fill('Testing123!');await page.getByRole('button',{name:'Kirish',exact:true}).click();await expect(page.getByRole('heading',{name:/Xush kelibsiz, Sinov/})).toBeVisible();
+ await page.getByRole('link',{name:'Token Shop',exact:true}).click();await expect(page.getByRole('heading',{name:'Mehnatingiz mukofotga aylansin'})).toBeVisible();
+ expect(requests).toEqual([]);
+});
 test('Turso yo‘q Vercel muhiti: loginsiz AI chat, yuborish va tozalash',async({page})=>{
  await page.route('**/api/me',r=>r.fulfill({json:{user:null,demo:false}}));
  await page.route('**/api/health',r=>r.fulfill({json:{ok:true,databaseConfigured:false,aiConfigured:true,demo:false}}));

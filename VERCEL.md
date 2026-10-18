@@ -1,3 +1,7 @@
+## Turso yo?q bo?lsa oddiy hisob
+
+Turso ulanmaganda hisob yaratish va kirish shu brauzerda ishlaydi. Ism, email, parol va hisob turini tanlang. Parol PBKDF2 bilan xeshlanadi; hisob va vazifalar IndexedDB?da saqlanadi. Bu server autentifikatsiyasi emas: hisob boshqa qurilmada ochilmaydi, brauzer ma?lumotlari o?chirilsa yo?qoladi, qurilmaga kira olgan odam brauzer ma?lumotlarini boshqara oladi. O?qituvchi, o?quvchi va ota-ona shu brauzerda alohida hisob yaratib, vazifa va davomat jarayonlarini sinaydi. Turso ulanganda server hisoblari ishlaydi; brauzerdagi hisoblar avtomatik ko?chirilmaydi. Haqiqiy maktabning shaxsiy ma?lumotlarini bu sinov rejimiga kiritmang. AI so?rovlari baribir Vercel?dagi Groq kalitini talab qiladi.
+
 # VoiceToMental’ni Vercel’ga joylash
 
 ## Faqat AI chat uchun — 3 ta sozlama
