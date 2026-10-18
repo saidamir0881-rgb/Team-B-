@@ -3,6 +3,7 @@
 @source "./App.jsx";
 @source "./pages";
 @source "./components/PortalUI.jsx";
+.public-ai-page{min-height:100dvh;background:var(--bg)}.public-ai-page>header{max-width:1400px;margin:auto;display:flex;align-items:center;gap:20px;padding:22px 30px;border-bottom:1px solid var(--line)}.public-ai-brand{display:flex;align-items:center;gap:9px;font-weight:750;font-size:21px;color:var(--heading)}.public-ai-brand svg{color:var(--teal)}.public-ai-page>header>span{color:var(--muted);font-size:11px;margin-left:auto}.public-ai-page>main{max-width:1300px;margin:auto;padding:35px 30px}.public-chat-link{display:flex;align-items:center;gap:7px;width:fit-content;color:var(--teal);font-size:12px;margin:18px 0 0}.public-ai-page .ai-chat-panel{min-height:650px}@media(max-width:620px){.public-ai-page>header{padding:18px 16px;gap:12px}.public-ai-brand{font-size:18px}.public-ai-page>header>span{display:none}.public-ai-page>header>.icon-btn{margin-left:auto}.public-ai-page>header>.btn{font-size:10px;padding:9px}.public-ai-page>main{padding:25px 16px}.public-ai-page .page-title h1{font-size:24px}}
 @custom-variant dark (&:where(.dark, .dark *));
 @theme static{--font-sans:'Inter','Segoe UI',Arial,sans-serif;}
 :root{font-family:var(--font-sans);color:#24324a;background:#f6f8fb;--bg:#f6f8fb;--surface:#fff;--text:#24324a;--heading:#182638;--muted:#64748b;--line:#e9edf3;--soft:#f5f7fa;--teal:#139c89;--purple:#7960d7;--teal-soft:#e9f7f2;--shadow:0 4px 22px #1c345705;--sidebar:#112a2b;color-scheme:light;font-synthesis:none}

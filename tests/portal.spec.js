@@ -1,4 +1,18 @@
 import { test, expect } from '@playwright/test';
+test('Turso yo‘q Vercel muhiti: loginsiz AI chat, yuborish va tozalash',async({page})=>{
+ await page.route('**/api/me',r=>r.fulfill({json:{user:null,demo:false}}));
+ await page.route('**/api/health',r=>r.fulfill({json:{ok:true,databaseConfigured:false,aiConfigured:true,demo:false}}));
+ let received;
+ await page.route('**/api/ai',async r=>{if(r.request().method()==='GET')return r.fulfill({json:{messages:[],configured:true,model:'test-model'}});received=r.request().postDataJSON();return r.fulfill({json:{answer:'2 + 2 = 4.'}});});
+ await page.goto('/');
+ await expect(page.getByRole('heading',{name:'Har bir savol — yangi imkoniyat'})).toBeVisible();
+ await page.getByLabel('AI uchun savol').fill('2 + 2 nechaga teng?');
+ await page.getByLabel('Savolni yuborish').click();
+ await expect(page.getByText('2 + 2 = 4.',{exact:true})).toBeVisible();
+ expect(received.message).toBe('2 + 2 nechaga teng?');expect(received.history).toEqual([]);
+ await page.getByLabel('Suhbatni tozalash').click();
+ await expect(page.getByRole('heading',{name:'Bugun nimani o‘rganamiz?'})).toBeVisible();
+});
 test('O‘quvchi → o‘qituvchi → ota-ona: to‘liq ishlash jarayoni',async({page})=>{
 const errors=[];page.on('pageerror',e=>errors.push(e.message));
 await page.goto('/');await expect(page.locator('html')).not.toHaveClass(/dark/);await page.getByRole('button',{name:'O‘quvchi',exact:true}).click();await expect(page.getByRole('heading',{name:/Xush kelibsiz, Azizbek/})).toBeVisible();await page.screenshot({path:'artifacts/dashboard-light.png',fullPage:true});
